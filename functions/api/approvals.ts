@@ -15,7 +15,10 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     const body = await request.json() as { name?: string; status?: string }
 
     if (!body.name || !body.status) {
-      return Response.json({ error: 'name and status are required' }, { status: 400 })
+      return Response.json(
+        { error: 'name and status are required' },
+        { status: 400 }
+      )
     }
 
     const result = await env.APPROVALS_DB.prepare(
