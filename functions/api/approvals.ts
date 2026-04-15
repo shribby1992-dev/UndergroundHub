@@ -1,10 +1,10 @@
 interface Env {
-  DB: D1Database
+  APPROVALS_DB: D1Database
 }
 
 export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   if (request.method === 'GET') {
-    const result = await env.DB.prepare(
+    const result = await env.APPROVALS_DB.prepare(
       'SELECT id, name, status, created_at FROM approvals ORDER BY id DESC'
     ).all()
 
@@ -15,13 +15,10 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     const body = await request.json() as { name?: string; status?: string }
 
     if (!body.name || !body.status) {
-      return Response.json(
-        { error: 'name and status are required' },
-        { status: 400 }
-      )
+      return Response.json({ error: 'name and status are required' }, { status: 400 })
     }
 
-    const result = await env.DB.prepare(
+    const result = await env.APPROVALS_DB.prepare(
       'INSERT INTO approvals (name, status) VALUES (?, ?) RETURNING id, name, status, created_at'
     )
       .bind(body.name, body.status)
