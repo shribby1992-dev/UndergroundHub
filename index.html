@@ -6,7 +6,103 @@
 <title>Underworld Browser Panel</title>
 <style>
 :root{
-  --bg:#031013;
+  --bg:#031013;import { useEffect, useState } from 'react'
+
+function App() {
+  const [name, setName] = useState('')
+  const [status, setStatus] = useState('approved')
+  const [approvals, setApprovals] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState('')
+
+  async function loadApprovals() {
+    const res = await fetch('/api/approvals')
+    const data = await res.json()
+    setApprovals(data)
+  }
+
+  useEffect(() => {
+    loadApprovals()
+  }, [])
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    setLoading(true)
+    setMessage('')
+
+    try {
+      const res = await fetch('/api/approvals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, status }),
+      })
+
+      if (!res.ok) {
+        throw new Error(await res.text())
+      }
+
+      setName('')
+      setStatus('approved')
+      setMessage('Saved')
+      await loadApprovals()
+    } catch (err) {
+      setMessage('Error saving approval')
+    }
+
+    setLoading(false)
+  }
+
+  return (
+    <div style={{ padding: 20, fontFamily: 'Arial, sans-serif' }}>
+      <h1>Approvals</h1>
+
+      <form onSubmit={handleSubmit} style={{ marginBottom: 24 }}>
+        <div style={{ marginBottom: 12 }}>
+          <label style={{ display: 'block', marginBottom: 6 }}>Name</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Enter name"
+            style={{ padding: 8, width: '100%', maxWidth: 320 }}
+          />
+        </div>
+
+        <div style={{ marginBottom: 12 }}>
+          <label style={{ display: 'block', marginBottom: 6 }}>Status</label>
+          <input
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            placeholder="approved"
+            style={{ padding: 8, width: '100%', maxWidth: 320 }}
+          />
+        </div>
+
+        <button type="submit" disabled={loading} style={{ padding: '8px 14px' }}>
+          {loading ? 'Saving...' : 'Save Approval'}
+        </button>
+      </form>
+
+      {message && <p>{message}</p>}
+
+      <h2>Saved Approvals</h2>
+      {approvals.length === 0 ? (
+        <p>No approvals yet.</p>
+      ) : (
+        <ul>
+          {approvals.map((item) => (
+            <li key={item.id}>
+              {item.name} — {item.status} — {item.created_at}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+export default App
   --bg2:#06171c;
   --panel:#081b21;
   --panel2:#0b232a;
